@@ -1,0 +1,25 @@
+{
+  "name": "Georges Schmidt — Kinésithérapeute",
+  "short_name": "Kiné Schmidt",
+  "description": "Georges Schmidt, kinésithérapeute à Ixelles. Kinésithérapie, ostéopathie et PCP Therapy.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF7",
+  "theme_color": "#1B4D4D",
+  "orientation": "portrait-primary",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

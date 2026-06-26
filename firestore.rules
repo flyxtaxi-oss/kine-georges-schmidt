@@ -1,0 +1,47 @@
+// Firestore Security Rules
+// Deploy: firebase deploy --only firestore:rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Appointments ────────────────────────────────────────────
+    match /appointments/{appointmentId} {
+      // Patient can read/write only their own appointments
+      allow create: if request.auth != null
+                    && request.resource.data.patientId == request.auth.uid
+                    && request.resource.data.keys().hasAll(['patientId', 'patientName', 'patientEmail', 'date', 'time', 'duration', 'status'])
+                    && request.resource.data.status == 'booked';
+
+      allow read: if request.auth != null
+                  && (resource.data.patientId == request.auth.uid
+                      || isPractitioner());
+
+      // Patient can only cancel their own appointments
+      allow update: if request.auth != null
+                    && resource.data.patientId == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+                    && request.resource.data.status == 'cancelled';
+
+      // Practitioner can update status (done, no-show, cancelled)
+      allow update: if isPractitioner()
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+
+      allow delete: if isPractitioner();
+    }
+
+    // ─── Config (Availability) ───────────────────────────────────
+    match /config/{configId} {
+      allow read: if true; // Public availability info
+      allow write: if isPractitioner();
+    }
+
+    // ─── Helper Function ─────────────────────────────────────────
+    function isPractitioner() {
+      return request.auth != null
+             && request.auth.token.email == "PRACTITIONER_EMAIL_HERE";
+      // TODO: Replace with actual practitioner email or use custom claims:
+      // return request.auth.token.role == "practitioner";
+    }
+  }
+}
