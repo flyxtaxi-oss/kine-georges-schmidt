@@ -12,6 +12,11 @@ import {
   type Appointment,
 } from "@/lib/firebase";
 import {
+  notifications,
+  buildBookingConfirmationEmail,
+  buildNewBookingNotification,
+} from "@/lib/notifications";
+import {
   Calendar,
   Clock,
   ChevronLeft,
@@ -119,15 +124,48 @@ export default function PortailPage() {
     if (!user || !selectedDate || !selectedTime) return;
     setIsSubmitting(true);
     try {
+      const dateStr = toDateString(selectedDate);
+      const patientName = user.displayName || "Patient";
+      const patientEmail = user.email || "";
+
       await createAppointment({
         patientId: user.uid,
-        patientName: user.displayName || "Patient",
-        patientEmail: user.email || "",
-        date: toDateString(selectedDate),
+        patientName,
+        patientEmail,
+        date: dateStr,
         time: selectedTime,
         duration: practitioner.slotDurationMinutes,
         reason: reason || undefined,
       });
+
+      // Send confirmation email to patient
+      const confirmationEmail = buildBookingConfirmationEmail({
+        patientName,
+        date: formatDate(selectedDate),
+        time: selectedTime,
+        practitionerName: practitioner.name,
+        address: practitioner.address.full,
+      });
+      notifications.send("email", {
+        to: patientEmail,
+        ...confirmationEmail,
+      }).catch((err) => console.error("Patient email failed:", err));
+
+      // Send new booking notification to practitioner
+      const practitionerEmail = buildNewBookingNotification({
+        patientName,
+        patientEmail,
+        date: formatDate(selectedDate),
+        time: selectedTime,
+        reason: reason || undefined,
+      });
+      if (practitioner.email) {
+        notifications.send("email", {
+          to: practitioner.email,
+          ...practitionerEmail,
+        }).catch((err) => console.error("Practitioner email failed:", err));
+      }
+
       setStep("success");
       // Refresh appointments
       const updated = await getPatientAppointments(user.uid);

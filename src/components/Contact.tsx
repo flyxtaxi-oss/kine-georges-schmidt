@@ -145,37 +145,31 @@ export default function Contact() {
             </div>
           </div>
 
-          {/* Google Maps */}
+          {/* Map — OpenStreetMap (no API key needed) */}
           <div
-            className={`rounded-2xl overflow-hidden shadow-2xl border border-white/10 min-h-[400px] ${
+            className={`rounded-2xl overflow-hidden shadow-2xl border border-white/10 min-h-[400px] relative ${
               isVisible ? "animate-scale-in" : "opacity-0"
             }`}
             style={{ animationDelay: "0.3s", opacity: isVisible ? undefined : 0 }}
           >
             <iframe
-              src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || ""}&q=${encodeURIComponent(practitioner.address.full)}&zoom=16`}
+              src={`https://www.openstreetmap.org/export/embed.html?bbox=${practitioner.address.coordinates.lng - 0.005}%2C${practitioner.address.coordinates.lat - 0.003}%2C${practitioner.address.coordinates.lng + 0.005}%2C${practitioner.address.coordinates.lat + 0.003}&layer=mapnik&marker=${practitioner.address.coordinates.lat}%2C${practitioner.address.coordinates.lng}`}
               width="100%"
               height="100%"
               style={{ border: 0, minHeight: "400px" }}
-              allowFullScreen
               loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
               title={`Localisation ${practitioner.name}`}
             />
-            {!process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY && (
-              <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-primary-dark)]/80">
-                <div className="text-center text-white/60 p-8">
-                  <MapPin size={48} className="mx-auto mb-4 opacity-50" />
-                  <p className="text-sm">
-                    Carte Google Maps
-                    <br />
-                    <span className="text-xs opacity-70">
-                      (Ajoutez NEXT_PUBLIC_GOOGLE_MAPS_KEY dans .env.local)
-                    </span>
-                  </p>
-                </div>
-              </div>
-            )}
+            {/* Link to Google Maps for directions */}
+            <a
+              href={practitioner.address.googleMapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="absolute bottom-4 right-4 btn btn-white text-sm py-2 px-4 no-underline shadow-lg"
+            >
+              <ExternalLink size={14} />
+              Ouvrir dans Google Maps
+            </a>
           </div>
         </div>
       </div>
